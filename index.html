@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Aluguel de pula-pula, castelo inflável, piscina de bolinhas e brinquedos para festa infantil. Reserve e pague online.">
+<title>Pula Nuvem Festas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: céu pastel com balões flutuando no topo; catálogo em grade de "cartões-balão"; carrinho fixo à direita no desktop, abaixo no celular. */
+:root{
+  --bg:#FBF8FF; --surface:#FFFFFF; --ink:#4B3F68; --ink-soft:#7B7096;
+  --rosa:#F7C6D6; --menta:#BDE9D9; --lavanda:#D9CFF5; --pessego:#FFD8BC; --ceu:#C7E4F8; --manteiga:#FFF0B3;
+  --accent:#E9789F; --accent-ink:#FFFFFF; --line:#ECE4F7; --ok:#3E9C7A; --warn:#C9673B;
+  --shadow:0 10px 30px -14px rgba(120,90,170,.35);
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,sans-serif;
+  --r:22px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#211D33; --surface:#2C2743; --ink:#F2ECFF; --ink-soft:#B9AED6;
+  --rosa:#6B4560; --menta:#3B6458; --lavanda:#4A4170; --pessego:#6E5240; --ceu:#3A5670; --manteiga:#675D33;
+  --accent:#F49BBA; --accent-ink:#2A1726; --line:#3C355A; --ok:#86D6B6; --warn:#F3A983;
+  --shadow:0 10px 30px -14px rgba(0,0,0,.6); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#211D33; --surface:#2C2743; --ink:#F2ECFF; --ink-soft:#B9AED6;
+  --rosa:#6B4560; --menta:#3B6458; --lavanda:#4A4170; --pessego:#6E5240; --ceu:#3A5670; --manteiga:#675D33;
+  --accent:#F49BBA; --accent-ink:#2A1726; --line:#3C355A; --ok:#86D6B6; --warn:#F3A983;
+  --shadow:0 10px 30px -14px rgba(0,0,0,.6); color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;margin:0}
+h1,h2,h3{font-family:var(--display);line-height:1.1;margin:0;text-wrap:balance}
+h2{font-size:clamp(1.8rem,4vw,2.5rem);font-weight:800}
+h3{font-size:1.3rem;font-weight:700}
+p{margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;border:0;border-radius:999px;padding:.75em 1.4em;font-weight:800;cursor:pointer;background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 0 -1px color-mix(in srgb,var(--accent) 55%,#000 0%),0 6px 0 0 color-mix(in srgb,var(--accent) 70%,var(--ink) 30%);transition:transform .12s}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(2px)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none}
+.btn.soft{background:var(--lavanda);color:var(--ink);box-shadow:none}
+.btn.small{padding:.45em 1em;font-size:.9rem}
+.label{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--ink-soft)}
+
+/* Topo */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:1.45rem;text-decoration:none;color:var(--ink)}
+.logo svg{width:42px;height:42px}
+nav.menu{display:flex;gap:18px;flex-wrap:wrap}
+nav.menu a{color:var(--ink);text-decoration:none;font-weight:700}
+nav.menu a:hover{color:var(--accent)}
+@media (max-width:720px){nav.menu{display:none}}
+.cart-pill{background:var(--rosa);border:0;border-radius:999px;padding:.45em 1em;font-weight:800;cursor:pointer}
+
+/* Herói */
+.hero{position:relative;overflow:hidden;background:linear-gradient(180deg,var(--ceu),var(--bg));padding-block:56px 72px}
+.hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center}
+@media (max-width:860px){.hero .wrap{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(2.4rem,6.5vw,4.4rem);font-weight:800;letter-spacing:-.01em}
+.hero h1 .wave{display:inline-block;background:var(--rosa);padding:0 .25em;border-radius:.35em;transform:rotate(-2deg)}
+.hero p.lead{font-size:1.15rem;color:var(--ink-soft);max-width:34ch;margin-top:16px}
+.date-card{background:var(--surface);border-radius:28px;padding:24px;box-shadow:var(--shadow);display:grid;gap:14px;border:2px dashed var(--lavanda)}
+.date-card h3{font-size:1.5rem}
+.date-card input[type=date]{width:100%;padding:.8em 1em;border-radius:14px;border:2px solid var(--line);background:var(--bg);font-weight:700;font-size:1.05rem}
+.date-card .hint{font-size:.9rem;color:var(--ink-soft)}
+.balloons{position:absolute;inset:0;z-index:1;pointer-events:none}
+.balloon{position:absolute;width:70px;height:86px;border-radius:50% 50% 48% 48%;opacity:.85;animation:float 7s ease-in-out infinite}
+.balloon::after{content:"";position:absolute;left:50%;top:100%;width:1.5px;height:70px;background:var(--ink-soft);opacity:.4}
+.balloon::before{content:"";position:absolute;left:calc(50% - 6px);bottom:-6px;border:6px solid transparent;border-bottom-color:inherit}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-18px) rotate(3deg)}}
+@media (prefers-reduced-motion:reduce){.balloon{animation:none}}
+.cloud{position:absolute;bottom:-30px;left:-5%;right:-5%;height:90px;background:radial-gradient(circle at 10% 100%,var(--bg) 60px,transparent 61px),radial-gradient(circle at 28% 100%,var(--bg) 80px,transparent 81px),radial-gradient(circle at 50% 100%,var(--bg) 70px,transparent 71px),radial-gradient(circle at 72% 100%,var(--bg) 85px,transparent 86px),radial-gradient(circle at 92% 100%,var(--bg) 65px,transparent 66px);z-index:1}
+
+/* Seções */
+section{padding-block:56px}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.sec-head p{color:var(--ink-soft);max-width:52ch}
+
+/* Loja */
+.shop{display:grid;grid-template-columns:1fr 340px;gap:28px;align-items:start}
+@media (max-width:960px){.shop{grid-template-columns:1fr}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px}
+.toy{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.toy .art{aspect-ratio:4/3;display:grid;place-items:center;max-width:100%}
+.toy .art svg{width:72%;height:auto}
+.toy .info{padding:16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.toy .meta{font-size:.85rem;color:var(--ink-soft)}
+.toy .row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:8px}
+.price{font-family:var(--display);font-weight:800;font-size:1.35rem;font-variant-numeric:tabular-nums}
+.price small{font-family:var(--body);font-size:.75rem;font-weight:700;color:var(--ink-soft)}
+.badge{display:inline-block;font-size:.75rem;font-weight:800;padding:.2em .7em;border-radius:999px;align-self:flex-start}
+.badge.ok{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.badge.no{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.badge.wait{background:var(--line);color:var(--ink-soft)}
+.toy.out{opacity:.6}
+
+/* Carrinho */
+.cart{position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px);background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;display:grid;gap:14px;border-top:8px solid var(--rosa)}
+@media (max-width:960px){.cart{position:static}}
+.cart-list{display:grid;gap:10px;list-style:none;margin:0;padding:0}
+.cart-list li{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.cart-list button{background:none;border:0;cursor:pointer;color:var(--ink-soft);font-weight:800}
+.totals{display:grid;gap:6px;border-top:2px dashed var(--line);padding-top:12px;font-variant-numeric:tabular-nums}
+.totals div{display:flex;justify-content:space-between}
+.totals .big{font-family:var(--display);font-size:1.5rem;font-weight:800}
+.field{display:grid;gap:4px}
+.field label{font-weight:800;font-size:.9rem}
+.field input,.field select{padding:.65em .8em;border-radius:12px;border:2px solid var(--line);background:var(--bg);width:100%}
+.empty{color:var(--ink-soft);font-size:.95rem}
+
+/* Passos */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;list-style:none;padding:0;margin:0}
+@media (max-width:860px){.steps{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:460px){.steps{grid-template-columns:1fr}}
+.steps li{border-radius:var(--r);padding:20px;display:grid;gap:8px}
+.steps .n{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1}
+.steps li:nth-child(1){background:var(--rosa)}.steps li:nth-child(2){background:var(--menta)}.steps li:nth-child(3){background:var(--manteiga)}.steps li:nth-child(4){background:var(--lavanda)}
+
+/* Depoimentos */
+.quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media (max-width:860px){.quotes{grid-template-columns:1fr}}
+.quote{background:var(--surface);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);display:grid;gap:10px}
+.quote .who{font-weight:800;font-size:.9rem;color:var(--ink-soft)}
+.stars{color:var(--accent);letter-spacing:.1em}
+
+/* Contato e rodapé */
+.contact{background:var(--menta);border-radius:32px;padding:32px;display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:center}
+@media (max-width:760px){.contact{grid-template-columns:1fr}}
+.copybox{display:flex;gap:8px;align-items:center;background:var(--surface);border-radius:14px;padding:10px 14px;flex-wrap:wrap}
+.copybox code{font-weight:800;user-select:all;word-break:break-all;flex:1;min-width:0}
+footer{padding-block:32px;text-align:center;color:var(--ink-soft);font-size:.9rem}
+
+/* Painel modal */
+.overlay{position:fixed;inset:0;background:rgba(40,30,70,.45);z-index:50;display:grid;place-items:center;padding:16px}
+.modal{background:var(--surface);border-radius:28px;max-width:520px;width:100%;max-height:90vh;overflow:auto;padding:28px;display:grid;gap:16px;box-shadow:var(--shadow)}
+.pix-code{background:var(--bg);border:2px dashed var(--lavanda);border-radius:14px;padding:12px;font-family:ui-monospace,monospace;font-size:.8rem;word-break:break-all;user-select:all}
+.tabs{display:flex;gap:8px}
+.tabs button{flex:1;border:2px solid var(--line);background:var(--bg);border-radius:14px;padding:.6em;font-weight:800;cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--lavanda);border-color:var(--lavanda)}
+.qr{width:150px;height:150px;justify-self:center;border-radius:12px;background:var(--surface);padding:8px;border:2px solid var(--line)}
+.note{font-size:.85rem;color:var(--ink-soft);background:var(--manteiga);border-radius:12px;padding:10px 12px}
+
+/* Painel do dono */
+.admin{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:22px;overflow-x:auto}
+.admin table{width:100%;border-collapse:collapse;font-size:.92rem;min-width:620px}
+.admin th,.admin td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.admin td.num{font-variant-numeric:tabular-nums}
+.status{font-weight:800;font-size:.78rem;padding:.2em .7em;border-radius:999px;background:var(--line);white-space:nowrap}
+.status.pago{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
+.status.informado{background:var(--manteiga)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.7em 1.2em;border-radius:999px;font-weight:800;z-index:60}
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#inicio">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><ellipse cx="24" cy="30" rx="20" ry="11" fill="var(--ceu)"/><circle cx="15" cy="27" r="9" fill="var(--ceu)"/><circle cx="27" cy="22" r="11" fill="var(--ceu)"/><path d="M8 38 Q24 30 40 38" stroke="var(--accent)" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="20" cy="22" r="2" fill="var(--ink)"/><circle cx="30" cy="22" r="2" fill="var(--ink)"/><path d="M22 28 q3 3 6 0" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      Pula Nuvem
+    </a>
+    <nav class="menu">
+      <a href="#brinquedos">Brinquedos</a><a href="#como">Como funciona</a><a href="#depoimentos">Depoimentos</a><a href="#contato">Contato</a>
+    </nav>
+    <button class="cart-pill" id="cartPill">Meu pedido · <span id="cartCount">0</span></button>
+  </div>
+</header>
+
+<main>
+<section class="hero" id="inicio">
+  <div class="balloons" aria-hidden="true">
+    <span class="balloon" style="left:4%;top:18%;background:var(--rosa);border-bottom-color:var(--rosa);animation-delay:0s"></span>
+    <span class="balloon" style="left:42%;top:6%;width:54px;height:66px;background:var(--manteiga);border-bottom-color:var(--manteiga);animation-delay:-2s"></span>
+    <span class="balloon" style="right:6%;top:10%;background:var(--menta);border-bottom-color:var(--menta);animation-delay:-4s"></span>
+    <span class="balloon" style="right:30%;top:58%;width:48px;height:60px;background:var(--lavanda);border-bottom-color:var(--lavanda);animation-delay:-1s"></span>
+    <span class="balloon" style="left:20%;top:64%;width:44px;height:54px;background:var(--pessego);border-bottom-color:var(--pessego);animation-delay:-3s"></span>
+  </div>
+  <div class="wrap">
+    <div>
+      <span class="label">Aluguel de brinquedos para festa infantil</span>
+      <h1 style="margin-top:10px">Festa boa é festa que <span class="wave">pula!</span></h1>
+      <p class="lead">Pula-pula, castelo inflável, piscina de bolinhas e muito mais. Você escolhe, reserva e paga por aqui. A gente monta tudo e busca no fim da festa.</p>
+    </div>
+    <div class="date-card">
+      <h3>Qual o dia da festa?</h3>
+      <input type="date" id="festaData" aria-label="Data da festa">
+      <p class="hint" id="dateHint">Escolha a data para ver o que está livre.</p>
+      <a class="btn" href="#brinquedos">Ver brinquedos disponíveis</a>
+    </div>
+  </div>
+  <div class="cloud" aria-hidden="true"></div>
+</section>
+
+<section id="brinquedos">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <span class="label">Catálogo</span>
+        <h2>Nossos brinquedos</h2>
+      </div>
+      <p id="catalogHint">Valores por diária (até 8 horas de festa), com montagem e desmontagem incluídas.</p>
+    </div>
+    <div class="shop">
+      <div class="grid" id="grid"></div>
+      <aside class="cart" id="cart" aria-label="Seu pedido">
+        <div>
+          <span class="label">Seu pedido</span>
+          <h3 id="cartDate">Escolha a data da festa</h3>
+        </div>
+        <ul class="cart-list" id="cartList"></ul>
+        <p class="empty" id="cartEmpty">Nenhum brinquedo ainda. Toque em "Adicionar" no catálogo.</p>
+        <div class="field">
+          <label for="frete">Distância até a festa</label>
+          <select id="frete"></select>
+        </div>
+        <div class="totals">
+          <div><span>Brinquedos</span><span id="subTotal">R$ 0,00</span></div>
+          <div><span>Entrega e montagem</span><span id="freteTotal">R$ 0,00</span></div>
+          <div class="big"><span>Total</span><span id="grandTotal">R$ 0,00</span></div>
+        </div>
+        <button class="btn" id="checkoutBtn" disabled>Fazer reserva</button>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section id="como">
+  <div class="wrap">
+    <div class="sec-head"><div><span class="label">Simples assim</span><h2>Como funciona</h2></div></div>
+    <ol class="steps">
+      <li><span class="n">1</span><h3>Escolha a data</h3><p>O catálogo mostra na hora o que está livre no dia da sua festa.</p></li>
+      <li><span class="n">2</span><h3>Monte o pedido</h3><p>Adicione os brinquedos e veja o total com a entrega.</p></li>
+      <li><span class="n">3</span><h3>Pague o sinal</h3><p>Pix ou cartão. A reserva fica garantida assim que o pagamento cai.</p></li>
+      <li><span class="n">4</span><h3>É só brincar</h3><p>Chegamos antes da festa para montar e voltamos para desmontar.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section id="depoimentos">
+  <div class="wrap">
+    <div class="sec-head"><div><span class="label">Exemplos de depoimentos</span><h2>Quem já pulou com a gente</h2></div><p>Troque estes textos pelos comentários reais dos seus clientes.</p></div>
+    <div class="quotes">
+      <figure class="quote" style="margin:0"><span class="stars">★★★★★</span><blockquote style="margin:0">O castelo chegou cedinho, limpinho e montado com todo cuidado. As crianças não queriam sair de lá.</blockquote><figcaption class="who">Mãe da Laura, 5 anos</figcaption></figure>
+      <figure class="quote" style="margin:0"><span class="stars">★★★★★</span><blockquote style="margin:0">Reservei pelo site em cinco minutos e paguei no Pix. Muito prático para quem está organizando tudo sozinho.</blockquote><figcaption class="who">Pai do Miguel, 7 anos</figcaption></figure>
+      <figure class="quote" style="margin:0"><span class="stars">★★★★★</span><blockquote style="margin:0">A piscina de bolinhas foi o sucesso da festa dos pequenos. Equipe pontual e muito simpática.</blockquote><figcaption class="who">Avó da Helena, 2 anos</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="contato">
+  <div class="wrap">
+    <div class="contact">
+      <div style="display:grid;gap:10px">
+        <span class="label">Fale com a gente</span>
+        <h2>Ficou com alguma dúvida?</h2>
+        <p>Atendemos de segunda a sábado, das 9h às 19h. Mande uma mensagem no WhatsApp com a data e o endereço da festa.</p>
+      </div>
+      <div style="display:grid;gap:10px">
+        <span class="label">WhatsApp (exemplo)</span>
+        <div class="copybox"><code id="zap">(00) 00000-0000</code><button class="btn small soft" data-copy="zap">Copiar</button></div>
+        <span class="label">E-mail (exemplo)</span>
+        <div class="copybox"><code id="mail">contato@pulanuvem.com.br</code><button class="btn small soft" data-copy="mail">Copiar</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="painel" hidden>
+  <div class="wrap">
+    <div class="sec-head"><div><span class="label">Só você vê esta parte</span><h2>Painel de reservas</h2></div><p>Confirme o pagamento ou cancele um pedido. Cancelar libera os brinquedos naquela data.</p></div>
+    <div class="admin"><table><thead><tr><th>Festa</th><th>Cliente</th><th>Brinquedos</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody id="adminRows"></tbody></table><p class="empty" id="adminEmpty">Nenhuma reserva ainda.</p></div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">Pula Nuvem Festas · Aluguel de brinquedos para festas infantis · <span id="modeNote"></span></div></footer>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" id="modal"></div>
+</div>
+
+<script>
+// ===== CONFIGURAÇÃO DA EMPRESA (troque pelos seus dados) =====
+const CONFIG = {
+  pixChave: "pix@pulanuvem.com.br",      // sua chave Pix
+  pixNome: "PULA NUVEM FESTAS",
+  linkCartao: "",                         // cole aqui o link de pagamento do Mercado Pago / PagSeguro
+  sinalPercentual: 50,                    // % pago para garantir a reserva
+  antecedenciaDias: 2
+};
+const FRETES = [
+  {id:"f1", nome:"Até 10 km", valor:40},
+  {id:"f2", nome:"De 10 a 20 km", valor:60},
+  {id:"f3", nome:"De 20 a 35 km", valor:90},
+  {id:"f0", nome:"Vou retirar no galpão", valor:0}
+];
+const TOYS = [
+  {id:"pula", nome:"Pula-pula 2,5 m", desc:"Com rede de proteção, para até 4 crianças por vez.", idade:"3 a 12 anos", preco:180, qtd:3, cor:"--rosa", art:"pula"},
+  {id:"cama", nome:"Cama elástica 3,6 m", desc:"A maior da casa, para os pequenos que pulam alto.", idade:"5 a 14 anos", preco:240, qtd:1, cor:"--menta", art:"pula2"},
+  {id:"castelo", nome:"Castelo inflável", desc:"Torres coloridas e área de pulo de 4 x 4 m.", idade:"2 a 10 anos", preco:320, qtd:2, cor:"--lavanda", art:"castelo"},
+  {id:"bolinhas", nome:"Piscina de bolinhas", desc:"1,5 x 1,5 m com 2.000 bolinhas higienizadas.", idade:"1 a 5 anos", preco:150, qtd:2, cor:"--manteiga", art:"bolinhas"},
+  {id:"toboga", nome:"Tobogã inflável", desc:"Escalada e descida de 5 m de comprimento.", idade:"4 a 12 anos", preco:380, qtd:1, cor:"--ceu", art:"toboga"},
+  {id:"gira", nome:"Gira-gira", desc:"Carrossel manual com 6 assentos.", idade:"2 a 8 anos", preco:130, qtd:2, cor:"--pessego", art:"gira"},
+  {id:"algodao", nome:"Máquina de algodão-doce", desc:"Inclui 50 palitos e açúcar colorido.", idade:"Para a festa toda", preco:140, qtd:2, cor:"--rosa", art:"algodao"},
+  {id:"mesas", nome:"Kit mesinhas infantis", desc:"4 mesinhas e 16 cadeirinhas coloridas.", idade:"Para a festa toda", preco:90, qtd:4, cor:"--menta", art:"mesas"}
+];
+
+const ART = {
+  pula:`<svg viewBox="0 0 160 120"><ellipse cx="80" cy="96" rx="62" ry="12" fill="var(--surface)" opacity=".6"/><ellipse cx="80" cy="78" rx="60" ry="14" fill="var(--accent)"/><ellipse cx="80" cy="74" rx="52" ry="10" fill="var(--surface)"/><g stroke="var(--ink)" stroke-width="3" opacity=".7"><line x1="26" y1="76" x2="26" y2="22"/><line x1="134" y1="76" x2="134" y2="22"/><line x1="56" y1="84" x2="56" y2="28"/><line x1="104" y1="84" x2="104" y2="28"/></g><path d="M26 22 Q80 6 134 22" stroke="var(--ink)" stroke-width="3" fill="none" opacity=".7"/><circle cx="80" cy="44" r="9" fill="var(--pessego)"/><rect x="74" y="52" width="12" height="14" rx="5" fill="var(--ceu)"/></svg>`,
+  pula2:`<svg viewBox="0 0 160 120"><ellipse cx="80" cy="80" rx="70" ry="16" fill="var(--ink)" opacity=".75"/><ellipse cx="80" cy="76" rx="62" ry="12" fill="var(--surface)"/><g stroke="var(--ink)" stroke-width="4" opacity=".75"><line x1="22" y1="84" x2="16" y2="104"/><line x1="138" y1="84" x2="144" y2="104"/><line x1="80" y1="92" x2="80" y2="108"/></g><circle cx="70" cy="30" r="9" fill="var(--pessego)"/><rect x="64" y="38" width="12" height="16" rx="5" fill="var(--rosa)"/><path d="M60 46 l-10 -8 M80 46 l10 -8" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/></svg>`,
+  castelo:`<svg viewBox="0 0 160 120"><rect x="28" y="50" width="104" height="54" rx="10" fill="var(--rosa)"/><rect x="18" y="30" width="26" height="74" rx="10" fill="var(--ceu)"/><rect x="116" y="30" width="26" height="74" rx="10" fill="var(--ceu)"/><path d="M18 32 L31 12 L44 32Z" fill="var(--accent)"/><path d="M116 32 L129 12 L142 32Z" fill="var(--accent)"/><rect x="60" y="66" width="40" height="38" rx="18" fill="var(--manteiga)"/><circle cx="80" cy="40" r="10" fill="var(--manteiga)"/></svg>`,
+  bolinhas:`<svg viewBox="0 0 160 120"><rect x="22" y="44" width="116" height="58" rx="14" fill="var(--ceu)"/><g><circle cx="40" cy="48" r="9" fill="var(--rosa)"/><circle cx="58" cy="42" r="9" fill="var(--menta)"/><circle cx="76" cy="48" r="9" fill="var(--accent)"/><circle cx="94" cy="40" r="9" fill="var(--lavanda)"/><circle cx="112" cy="46" r="9" fill="var(--pessego)"/><circle cx="124" cy="36" r="8" fill="var(--rosa)"/><circle cx="66" cy="30" r="8" fill="var(--pessego)"/><circle cx="102" cy="26" r="7" fill="var(--menta)"/></g></svg>`,
+  toboga:`<svg viewBox="0 0 160 120"><rect x="96" y="20" width="44" height="84" rx="12" fill="var(--lavanda)"/><path d="M98 28 C70 40 50 90 18 100 L18 106 L104 106 L104 40Z" fill="var(--accent)"/><path d="M98 36 C74 48 56 92 28 100" stroke="var(--surface)" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="118" cy="12" r="8" fill="var(--manteiga)"/></svg>`,
+  gira:`<svg viewBox="0 0 160 120"><ellipse cx="80" cy="90" rx="58" ry="14" fill="var(--accent)"/><ellipse cx="80" cy="86" rx="50" ry="10" fill="var(--surface)"/><rect x="76" y="34" width="8" height="52" fill="var(--ink)" opacity=".7"/><path d="M40 40 Q80 10 120 40Z" fill="var(--menta)"/><g fill="var(--lavanda)"><rect x="38" y="70" width="14" height="12" rx="4"/><rect x="108" y="70" width="14" height="12" rx="4"/><rect x="73" y="74" width="14" height="12" rx="4"/></g></svg>`,
+  algodao:`<svg viewBox="0 0 160 120"><rect x="46" y="68" width="68" height="40" rx="10" fill="var(--ceu)"/><ellipse cx="80" cy="66" rx="40" ry="10" fill="var(--surface)"/><g fill="var(--rosa)"><circle cx="80" cy="34" r="20"/><circle cx="64" cy="40" r="14"/><circle cx="96" cy="40" r="14"/></g><rect x="78" y="48" width="4" height="22" fill="var(--manteiga)"/></svg>`,
+  mesas:`<svg viewBox="0 0 160 120"><rect x="40" y="52" width="80" height="10" rx="5" fill="var(--accent)"/><rect x="50" y="62" width="6" height="34" fill="var(--ink)" opacity=".6"/><rect x="104" y="62" width="6" height="34" fill="var(--ink)" opacity=".6"/><g><rect x="14" y="60" width="20" height="8" rx="3" fill="var(--lavanda)"/><rect x="14" y="40" width="6" height="56" rx="3" fill="var(--lavanda)"/><rect x="126" y="60" width="20" height="8" rx="3" fill="var(--manteiga)"/><rect x="140" y="40" width="6" height="56" rx="3" fill="var(--manteiga)"/></g><circle cx="80" cy="44" r="7" fill="var(--rosa)"/></svg>`
+};
+
+// ===== ESTADO =====
+const state = { date:"", cart:{}, frete:"f1", ocupacao:[], pedidos:[], db:null, user:null, uid:null, owner:false, live:false };
+const $ = s => document.querySelector(s);
+const brl = v => v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const fmtDate = iso => { if(!iso) return ""; const [y,m,d]=iso.split("-"); const dt=new Date(+y,+m-1,+d); return dt.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"}); };
+function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
+
+// data mínima
+const minD = new Date(); minD.setDate(minD.getDate()+CONFIG.antecedenciaDias);
+const isoOf = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+$("#festaData").min = isoOf(minD);
+// abre com o próximo sábado como exemplo
+const sab = new Date(minD); while(sab.getDay()!==6) sab.setDate(sab.getDate()+1);
+state.date = isoOf(sab); $("#festaData").value = state.date;
+
+function reservedOn(date){
+  const used = {};
+  state.ocupacao.filter(o=>o.data===date && o.status!=="cancelada").forEach(o=>{
+    for(const [k,q] of Object.entries(o.itens||{})) used[k]=(used[k]||0)+q;
+  });
+  return used;
+}
+function livre(toy){ if(!state.date) return null; const used=reservedOn(state.date); return toy.qtd-(used[toy.id]||0)-(state.cart[toy.id]||0); }
+
+function renderGrid(){
+  const used = state.date ? reservedOn(state.date) : {};
+  $("#grid").innerHTML = TOYS.map(t=>{
+    const disp = state.date ? t.qtd-(used[t.id]||0) : null;
+    const noCart = state.cart[t.id]||0;
+    let badge = '<span class="badge wait">Escolha a data</span>';
+    if(disp!==null) badge = disp>0 ? `<span class="badge ok">${disp===1?"1 disponível":disp+" disponíveis"}</span>` : '<span class="badge no">Esgotado nesta data</span>';
+    const canAdd = disp!==null && disp-noCart>0;
+    return `<article class="toy ${disp===0?"out":""}">
+      <div class="art" style="background:var(${t.cor})">${ART[t.art]}</div>
+      <div class="info">
+        ${badge}
+        <h3>${t.nome}</h3>
+        <p>${t.desc}</p>
+        <p class="meta">Idade: ${t.idade}</p>
+        <div class="row"><span class="price">${brl(t.preco)} <small>/dia</small></span>
+        <button class="btn small" data-add="${t.id}" ${canAdd?"":"disabled"}>${noCart?"Mais um":"Adicionar"}</button></div>
+      </div></article>`;
+  }).join("");
+}
+function totals(){
+  const sub = Object.entries(state.cart).reduce((s,[id,q])=>s+TOYS.find(t=>t.id===id).preco*q,0);
+  const fr = Object.keys(state.cart).length ? FRETES.find(f=>f.id===state.frete).valor : 0;
+  return {sub, fr, total:sub+fr};
+}
+function renderCart(){
+  const items = Object.entries(state.cart);
+  $("#cartDate").textContent = state.date ? "Festa: "+fmtDate(state.date) : "Escolha a data da festa";
+  $("#cartList").innerHTML = items.map(([id,q])=>{ const t=TOYS.find(x=>x.id===id); return `<li><span>${q}× ${t.nome}</span><span>${brl(t.preco*q)} <button data-rm="${id}" aria-label="Remover ${t.nome}">✕</button></span></li>`; }).join("");
+  $("#cartEmpty").hidden = items.length>0;
+  const {sub,fr,total}=totals();
+  $("#subTotal").textContent=brl(sub); $("#freteTotal").textContent=brl(fr); $("#grandTotal").textContent=brl(total);
+  $("#checkoutBtn").disabled = !items.length || !state.date;
+  $("#cartCount").textContent = items.reduce((s,[,q])=>s+q,0);
+}
+function renderHint(){
+  if(!state.date){ $("#dateHint").textContent="Escolha a data para ver o que está livre."; return; }
+  const used=reservedOn(state.date); const livres=TOYS.filter(t=>t.qtd-(used[t.id]||0)>0).length;
+  $("#dateHint").textContent = `${fmtDate(state.date)}: ${livres} de ${TOYS.length} brinquedos livres.`;
+}
+function render(){ renderGrid(); renderCart(); renderHint(); renderAdmin(); }
+
+$("#frete").innerHTML = FRETES.map(f=>`<option value="${f.id}">${f.nome}${f.valor?" · "+brl(f.valor):" · grátis"}</option>`).join("");
+$("#frete").addEventListener("change",e=>{state.frete=e.target.value; renderCart();});
+$("#festaData").addEventListener("change",e=>{
+  const v=e.target.value;
+  if(v && v < $("#festaData").min){ toast(`Reservas com pelo menos ${CONFIG.antecedenciaDias} dias de antecedência.`); e.target.value=state.date; return; }
+  state.date=v;
+  // remove do carrinho o que não cabe na nova data
+  const used=reservedOn(v);
+  for(const id of Object.keys(state.cart)){ const t=TOYS.find(x=>x.id===id); const max=t.qtd-(used[id]||0); if(state.cart[id]>max){ if(max>0) state.cart[id]=max; else delete state.cart[id]; } }
+  render();
+});
+$("#grid").addEventListener("click",e=>{ const id=e.target.closest("[data-add]")?.dataset.add; if(!id) return; state.cart[id]=(state.cart[id]||0)+1; render(); toast("Adicionado ao pedido"); });
+$("#cartList").addEventListener("click",e=>{ const id=e.target.closest("[data-rm]")?.dataset.rm; if(!id) return; state.cart[id]--; if(state.cart[id]<=0) delete state.cart[id]; render(); });
+$("#cartPill").addEventListener("click",()=>$("#cart").scrollIntoView({behavior:"smooth",block:"start"}));
+document.addEventListener("click",async e=>{
+  const id=e.target.closest("[data-copy]")?.dataset.copy; if(!id) return;
+  const el=document.getElementById(id); const txt=el.textContent;
+  try{ await navigator.clipboard.writeText(txt); toast("Copiado!"); }
+  catch{ const r=document.createRange(); r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("Selecionado. Use Ctrl+C para copiar."); }
+});
+
+// ===== CHECKOUT =====
+const overlay=$("#overlay"), modal=$("#modal");
+function closeModal(){ overlay.hidden=true; modal.innerHTML=""; }
+overlay.addEventListener("click",e=>{ if(e.target===overlay) closeModal(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !overlay.hidden) closeModal(); });
+
+$("#checkoutBtn").addEventListener("click",()=>{
+  const {total}=totals();
+  modal.innerHTML = `
+    <div><span class="label">Etapa 1 de 2</span><h2 id="modalTitle" style="font-size:1.8rem">Dados da festa</h2></div>
+    <form id="formReserva" style="display:grid;gap:12px">
+      <div class="field"><label for="fNome">Seu nome</label><input id="fNome" required autocomplete="name" placeholder="Ex.: Ana Souza"></div>
+      <div class="field"><label for="fTel">WhatsApp</label><input id="fTel" required inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000"></div>
+      <div class="field"><label for="fEnd">Endereço da festa</label><input id="fEnd" required autocomplete="street-address" placeholder="Rua, número, bairro"></div>
+      <div class="field"><label for="fHora">Horário de início</label><input id="fHora" type="time" required value="14:00"></div>
+      <div class="field"><label for="fCrianca">Nome e idade do aniversariante (opcional)</label><input id="fCrianca" placeholder="Ex.: Pedro, 6 anos"></div>
+      <div class="totals"><div class="big"><span>Total</span><span>${brl(total)}</span></div>
+      <div><span>Sinal para reservar (${CONFIG.sinalPercentual}%)</span><strong>${brl(total*CONFIG.sinalPercentual/100)}</strong></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" type="submit">Ir para o pagamento</button><button class="btn soft" type="button" id="cancelM">Voltar</button></div>
+    </form>`;
+  overlay.hidden=false; $("#fNome").focus();
+  $("#cancelM").onclick=closeModal;
+  $("#formReserva").addEventListener("submit",async ev=>{
+    ev.preventDefault();
+    const btn=ev.submitter; btn.disabled=true; btn.textContent="Reservando…";
+    const pedido = {
+      id: "P"+Date.now().toString(36).toUpperCase(),
+      data: state.date, horario: $("#fHora").value,
+      nome: $("#fNome").value.trim(), telefone: $("#fTel").value.trim(), endereco: $("#fEnd").value.trim(),
+      aniversariante: $("#fCrianca").value.trim(),
+      itens: {...state.cart}, frete: FRETES.find(f=>f.id===state.frete).nome,
+      total: totals().total, status: "aguardando", criadoEm: new Date().toISOString()
+    };
+    // checa disponibilidade de novo antes de gravar
+    const used=reservedOn(pedido.data);
+    const falta = Object.entries(pedido.itens).find(([id,q])=>TOYS.find(t=>t.id===id).qtd-(used[id]||0)<q);
+    if(falta){ btn.disabled=false; btn.textContent="Ir para o pagamento"; toast("Alguém acabou de reservar um desses brinquedos. Revise o pedido."); closeModal(); render(); return; }
+    try{ await salvarPedido(pedido); }
+    catch(err){ btn.disabled=false; btn.textContent="Ir para o pagamento"; toast("Não deu para salvar a reserva agora. Tente de novo em instantes."); return; }
+    state.cart={}; render(); showPayment(pedido);
+  });
+});
+
+function pixPayload(valor, txid){
+  // Pix "copia e cola" estático no padrão do Banco Central (EMV), com CRC16
+  const f=(id,v)=>id+String(v.length).padStart(2,"0")+v;
+  const mai=f("00","br.gov.bcb.pix")+f("01",CONFIG.pixChave);
+  let p=f("00","01")+f("26",mai)+f("52","0000")+f("53","986")+f("54",valor.toFixed(2))+f("58","BR")+f("59",CONFIG.pixNome.slice(0,25))+f("60","SAO PAULO")+f("62",f("05",txid.slice(0,25)))+"6304";
+  let crc=0xFFFF; for(const ch of p){ crc^=ch.charCodeAt(0)<<8; for(let i=0;i<8;i++) crc=(crc&0x8000)?((crc<<1)^0x1021)&0xFFFF:(crc<<1)&0xFFFF; }
+  return p+crc.toString(16).toUpperCase().padStart(4,"0");
+}
+
+function showPayment(p){
+  const sinal=p.total*CONFIG.sinalPercentual/100;
+  const code=pixPayload(sinal,p.id);
+  modal.innerHTML = `
+    <div><span class="label">Etapa 2 de 2 · Pedido ${p.id}</span><h2 id="modalTitle" style="font-size:1.8rem">Pagamento do sinal</h2>
+    <p style="color:var(--ink-soft);margin-top:6px">Seus brinquedos ficam separados para ${fmtDate(p.data)}. Pague ${brl(sinal)} para garantir.</p></div>
+    <div class="tabs" role="group" aria-label="Forma de pagamento"><button type="button" id="tPix" aria-pressed="true">Pix</button><button type="button" id="tCard" aria-pressed="false">Cartão</button></div>
+    <div id="payPix" style="display:grid;gap:12px">
+      <svg class="qr" viewBox="0 0 21 21" aria-label="QR Code ilustrativo">${fakeQR(code)}</svg>
+      <span class="label">Pix copia e cola</span>
+      <div class="pix-code" id="pixCode">${code}</div>
+      <button class="btn soft" data-copy="pixCode">Copiar código Pix</button>
+      <p class="note">O QR Code acima é ilustrativo. O código copia e cola já segue o padrão Pix com a chave configurada no site.</p>
+    </div>
+    <div id="payCard" hidden style="display:grid;gap:12px">
+      ${CONFIG.linkCartao ? `<a class="btn" href="${CONFIG.linkCartao}" target="_blank" rel="noopener">Pagar com cartão</a>` : `<p class="note">Pagamento com cartão: aqui vai entrar o link do Mercado Pago ou PagSeguro quando a empresa conectar a conta.</p>`}
+    </div>
+    <button class="btn" id="jaPaguei">Já fiz o pagamento</button>
+    <button class="btn soft" id="depois">Pagar depois</button>`;
+  $("#tPix").onclick=()=>{ $("#tPix").setAttribute("aria-pressed","true"); $("#tCard").setAttribute("aria-pressed","false"); $("#payPix").hidden=false; $("#payCard").hidden=true; };
+  $("#tCard").onclick=()=>{ $("#tCard").setAttribute("aria-pressed","true"); $("#tPix").setAttribute("aria-pressed","false"); $("#payCard").hidden=false; $("#payPix").hidden=true; };
+  $("#depois").onclick=closeModal;
+  $("#jaPaguei").onclick=async()=>{
+    try{ await atualizarStatus(p.id,"informado"); }catch{}
+    modal.innerHTML=`<div style="display:grid;gap:14px;text-align:center">
+      <svg viewBox="0 0 80 80" width="90" style="justify-self:center"><circle cx="40" cy="40" r="36" fill="var(--menta)"/><path d="M24 41 l11 11 l22 -24" stroke="var(--ok)" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h2 id="modalTitle" style="font-size:1.8rem">Reserva recebida!</h2>
+      <p>Pedido <strong>${p.id}</strong> para ${fmtDate(p.data)}, às ${p.horario}. Vamos conferir o pagamento e confirmar pelo WhatsApp ${p.telefone}.</p>
+      <button class="btn" id="fim">Voltar ao site</button></div>`;
+    $("#fim").onclick=closeModal;
+  };
+}
+function fakeQR(seed){
+  let h=0; for(const c of seed) h=(h*31+c.charCodeAt(0))>>>0;
+  let out=""; const finder=(x,y)=>`<rect x="${x}" y="${y}" width="7" height="7" fill="var(--ink)"/><rect x="${x+1}" y="${y+1}" width="5" height="5" fill="var(--surface)"/><rect x="${x+2}" y="${y+2}" width="3" height="3" fill="var(--ink)"/>`;
+  for(let y=0;y<21;y++) for(let x=0;x<21;x++){ if((x<8&&y<8)||(x>12&&y<8)||(x<8&&y>12)) continue; h=(h*1103515245+12345)>>>0; if(h&0x10000) out+=`<rect x="${x}" y="${y}" width="1" height="1" fill="var(--ink)"/>`; }
+  return out+finder(0,0)+finder(14,0)+finder(0,14);
+}
+
+// ===== DADOS: banco compartilhado quando disponível, senão modo demonstração =====
+async function salvarPedido(p){
+  const ocup = {pedido:p.id, data:p.data, itens:p.itens, status:"aguardando"};
+  if(state.live && state.uid){
+    await state.db.doc("ocupacao/"+p.id).set(ocup);
+    const ref=state.db.doc("pedidos/"+state.uid);
+    const snap=await ref.get();
+    const atuais = snap.exists ? {...(snap.data().lista||{})} : {};
+    atuais[p.id]=p;
+    await ref.set({lista:atuais});
+  } else {
+    state.ocupacao.push(ocup); state.pedidos.push(p);
+  }
+}
+async function atualizarStatus(id,status,dono){
+  if(state.live && state.uid){
+    await state.db.doc("ocupacao/"+id).update({status});
+    const path = dono ? "pedidos/"+dono : "pedidos/"+state.uid;
+    const ref=state.db.doc(path); const snap=await ref.get();
+    if(snap.exists){ const lista={...(snap.data().lista||{})}; if(lista[id]){ lista[id]={...lista[id],status}; await ref.set({lista}); } }
+  } else {
+    const o=state.ocupacao.find(x=>x.pedido===id); if(o) o.status=status;
+    const p=state.pedidos.find(x=>x.id===id); if(p) p.status=status;
+    render();
+  }
+}
+
+// ===== PAINEL DO DONO =====
+const STATUS_TXT={aguardando:"Aguardando pagamento",informado:"Cliente diz que pagou",pago:"Pago e confirmado",cancelada:"Cancelada"};
+function renderAdmin(){
+  if(location.hash!=="#painel"){ $("#painel").hidden=true; return; }
+  $("#painel").hidden=false;
+  const rows=[...state.pedidos].sort((a,b)=>a.data.localeCompare(b.data));
+  $("#adminEmpty").hidden=rows.length>0;
+  $("#adminRows").innerHTML=rows.map(p=>`<tr>
+    <td class="num">${p.data.split("-").reverse().join("/")}<br><span class="meta" style="color:var(--ink-soft)">${p.horario}</span></td>
+    <td>${esc(p.nome)}<br><span style="color:var(--ink-soft)">${esc(p.telefone)}</span><br><span style="color:var(--ink-soft)">${esc(p.endereco)}</span></td>
+    <td>${Object.entries(p.itens).map(([id,q])=>`${q}× ${TOYS.find(t=>t.id===id)?.nome||id}`).join("<br>")}</td>
+    <td class="num">${brl(p.total)}</td>
+    <td><span class="status ${p.status}">${STATUS_TXT[p.status]||p.status}</span></td>
+    <td style="white-space:nowrap">${p.status!=="pago"&&p.status!=="cancelada"?`<button class="btn small" data-st="pago" data-id="${p.id}" data-dono="${p._dono||""}">Confirmar</button> `:""}${p.status!=="cancelada"?`<button class="btn small soft" data-st="cancelada" data-id="${p.id}" data-dono="${p._dono||""}">Cancelar</button>`:""}</td></tr>`).join("");
+}
+function esc(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+$("#adminRows").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-st]"); if(!b) return;
+  b.disabled=true;
+  try{ await atualizarStatus(b.dataset.id,b.dataset.st,b.dataset.dono||null); toast(b.dataset.st==="pago"?"Reserva confirmada":"Reserva cancelada e brinquedos liberados"); }
+  catch{ toast("Não deu para atualizar agora. Tente de novo."); b.disabled=false; }
+});
+
+render();
+$("#modeNote").textContent="Modo demonstração: as reservas ainda não são salvas.";
+
+
+</script>
+
+<script>window.addEventListener("hashchange",()=>render());</script>
+</body>
+</html>
