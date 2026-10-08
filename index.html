@@ -289,8 +289,8 @@ footer{padding-block:32px;text-align:center;color:var(--ink-soft);font-size:.9re
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=1791430257"></script>
-<script src="dados.js?v=1791430257"></script>
+<script src="config.js?v=1791430552"></script>
+<script src="dados.js?v=1791430552"></script>
 <script>
 // ===== CONFIGURAÇÃO DA EMPRESA (troque pelos seus dados) =====
 const CONFIG = {
@@ -470,6 +470,7 @@ $("#checkoutBtn").addEventListener("click",()=>{
       if(err.code==="ocupado"){ toast("Alguém acabou de reservar um desses brinquedos. Revise o pedido."); closeModal(); await carregarOcupacao(); render(); }
       else toast("Não deu para salvar a reserva agora. Tente de novo em instantes.");
       return; }
+    avisarDona(pedido,"nova");
     state.cart={}; render(); showPayment(pedido);
   });
 });
@@ -507,6 +508,7 @@ function showPayment(p){
   $("#depois").onclick=closeModal;
   $("#jaPaguei").onclick=async()=>{
     try{ if(PN.on) await PN.informarPagamento(p.id); }catch{}
+    avisarDona(p,"pagou");
     modal.innerHTML=`<div style="display:grid;gap:14px;text-align:center">
       <svg viewBox="0 0 80 80" width="90" style="justify-self:center"><circle cx="40" cy="40" r="36" fill="var(--menta)"/><path d="M24 41 l11 11 l22 -24" stroke="var(--ok)" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <h2 id="modalTitle" style="font-size:1.8rem">Reserva recebida!</h2>
@@ -542,6 +544,24 @@ async function salvarPedido(p){
   }
 }
 function renderAdmin(){}
+
+// ===== AVISO POR E-MAIL PARA A DONA (Web3Forms) =====
+function avisarDona(p, tipo){
+  const key=(window.PULA_CONFIG||{}).web3formsKey; if(!key) return;
+  const itens=Object.keys(p.itens).map(id=>TOYS.find(t=>t.id===id)?.nome||id).join(", ");
+  const dataBr=p.data.split("-").reverse().join("/");
+  const sinal=p.total*CONFIG.sinalPercentual/100;
+  const titulo = tipo==="pagou" ? `Cliente informou pagamento: ${p.nome} (${dataBr})` : `Nova reserva: ${p.nome} – festa em ${dataBr}`;
+  const corpo={
+    access_key:key, subject:titulo, from_name:"Site Pula Nuvem",
+    "Aviso": tipo==="pagou" ? "O cliente clicou em 'Já fiz o pagamento'. Confira no banco antes de confirmar." : "Nova solicitação de reserva feita pelo site.",
+    "Pedido":p.id, "Data da festa":`${dataBr} às ${p.horario}`, "Cliente":p.nome, "WhatsApp":p.telefone,
+    "Endereço":`${p.endereco} – ${p.cidade||""}`, "Aniversariante":p.aniversariante||"—", "Brinquedos":itens,
+    "Total": brl(p.total)+(p.freteCombinar?" + frete a combinar":""), "Sinal (50%)": brl(sinal),
+    "Gestão":"https://karinaboline.github.io/Pula-Nuvem/gestao.html"
+  };
+  fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(corpo),keepalive:true}).catch(()=>{});
+}
 function esc(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
 
 render();
