@@ -560,7 +560,10 @@ function avisarDona(p, tipo){
     "Total": brl(p.total)+(p.freteCombinar?" + frete a combinar":""), "Sinal (50%)": brl(sinal),
     "Gestão":"https://karinaboline.github.io/Pula-Nuvem/gestao.html"
   };
-  fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(corpo),keepalive:true}).catch(()=>{});
+  const fd=new FormData(); for(const [k,v] of Object.entries(corpo)) fd.append(k,v);
+  fetch("https://api.web3forms.com/submit",{method:"POST",body:fd})
+    .then(r=>r.json()).then(j=>{ if(!j.success) console.warn("Web3Forms:",j.message); })
+    .catch(e=>console.warn("Falha ao enviar aviso por e-mail",e));
 }
 function esc(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
 
