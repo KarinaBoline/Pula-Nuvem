@@ -108,6 +108,7 @@ tr.cancel td{opacity:.55}
 .pill.info{background:var(--info-bg);color:var(--info)}
 .pill.neutral{background:var(--surface-2);color:var(--ink-soft)}
 .pend{color:var(--warn);font-weight:800}
+.tag.site{background:var(--ceu);border-color:transparent}
 .row-actions{display:flex;gap:6px;flex-wrap:wrap}
 .empty{padding:28px;text-align:center;color:var(--ink-soft)}
 
@@ -193,11 +194,23 @@ tr.cancel td{opacity:.55}
     <div class="head-actions">
       <button class="btn" id="btnNova">+ Nova reserva</button>
       <button class="btn ghost" id="btnBackup">Backup</button>
+      <button class="btn ghost" id="btnSync" hidden>Atualizar</button>
+      <button class="btn ghost" id="btnSair" hidden>Sair</button>
     </div>
   </div>
 </header>
 
-<main class="wrap">
+<section class="wrap" id="loginView" hidden style="padding-block:48px">
+  <form class="panel" id="loginForm" style="max-width:420px;margin:0 auto;display:grid;gap:14px">
+    <div><span class="label">Área da empresa</span><h2>Entrar na gestão</h2><p class="muted" style="margin-top:4px">Use o e-mail e a senha cadastrados no Supabase.</p></div>
+    <div class="field"><label for="lEmail">E-mail</label><input id="lEmail" type="email" required autocomplete="username"></div>
+    <div class="field"><label for="lSenha">Senha</label><input id="lSenha" type="password" required autocomplete="current-password"></div>
+    <p class="warnbox" id="lErro" hidden></p>
+    <button class="btn" type="submit">Entrar</button>
+  </form>
+</section>
+
+<main class="wrap" id="appView">
   <div class="banner" id="exampleBanner" hidden>
     <span><strong>Você está vendo dados de exemplo.</strong> Eles servem só para mostrar como a gestão funciona.</span>
     <button class="btn small" id="btnClearExamples">Apagar exemplos e começar</button>
@@ -290,6 +303,9 @@ tr.cancel td{opacity:.55}
 
 <div class="overlay" id="overlay" hidden><div class="modal" role="dialog" aria-modal="true" id="modal"></div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="dados.js"></script>
 <script>
 // ===== CATÁLOGO (igual ao site) =====
 const TOYS = [
@@ -330,6 +346,7 @@ function situacao(r){
   const pd=pendente(r), pg=pago(r);
   if(r.status==="realizado") return pd>0 ? {txt:"Realizada · cobrar",cls:"bad"} : {txt:"Realizada",cls:"ok"};
   if(pd<=0) return {txt:"Pago",cls:"ok"};
+  if(r.pagamentoInformado) return {txt:"Cliente diz que pagou",cls:"info"};
   if(pg>0) return {txt:"Sinal pago",cls:"info"};
   return {txt:"Aguardando pagamento",cls:"warn"};
 }
@@ -376,7 +393,7 @@ function gerarExemplos(){
   return res;
 }
 
-if(!load()){ db={reservas:gerarExemplos(), exemplo:true}; save(); }
+if(!PN.on && !load()){ db={reservas:gerarExemplos(), exemplo:true}; save(); }
 
 // ===== NAVEGAÇÃO =====
 let tab="op";
@@ -423,7 +440,7 @@ function renderOp(){
     const s=situacao(r), pd=pendente(r);
     return `<tr class="${r.status==="cancelado"?"cancel":""}">
       <td><div class="when">${fmtD(r.data)}</div><div class="muted">${dow(r.data)} · ${esc(r.horario)}</div></td>
-      <td><strong>${esc(r.cliente)}</strong><div class="muted num" style="white-space:nowrap">${esc(r.telefone)}</div></td>
+      <td><strong>${esc(r.cliente)}</strong>${r.origem==="site"?' <span class="tag site">site</span>':""}<div class="muted num" style="white-space:nowrap">${esc(r.telefone)}</div></td>
       <td class="addr">${esc(r.endereco)}<div class="muted">${esc(r.cidade)}</div></td>
       <td><div class="items">${r.itens.map(i=>`<span class="tag">${toy(i)?.curto||i}</span>`).join("")}</div></td>
       <td class="money">${brl(r.total)}</td>
@@ -504,11 +521,11 @@ function openForm(id, dataInicial){
   drawItens();
   $("#fClose").onclick=closeModal;
   $("#fPay")&&($("#fPay").onclick=()=>openPay(r.id));
-  $("#fDone")&&($("#fDone").onclick=()=>{ r.status="realizado"; commit("Festa marcada como realizada"); });
-  $("#fReopen")&&($("#fReopen").onclick=()=>{ r.status = r.data<TODAY?"realizado":"reservado"; commit("Reserva reativada"); });
+  $("#fDone")&&($("#fDone").onclick=()=>{ r.status="realizado"; commit("Festa marcada como realizada", r); });
+  $("#fReopen")&&($("#fReopen").onclick=()=>{ r.status = r.data<TODAY?"realizado":"reservado"; commit("Reserva reativada", r); });
   $("#fCancel")&&($("#fCancel").onclick=()=>{
     $("#fConfirm").innerHTML=`<div class="warnbox" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">Cancelar libera os brinquedos nesta data. Confirma? <button class="btn small" type="button" id="fCancelYes">Sim, cancelar</button></div>`;
-    $("#fCancelYes").onclick=()=>{ r.status="cancelado"; commit("Reserva cancelada"); };
+    $("#fCancelYes").onclick=()=>{ r.status="cancelado"; commit("Reserva cancelada", r); };
   });
   $("#fRes").addEventListener("submit",e=>{
     e.preventDefault();
@@ -523,10 +540,28 @@ function openForm(id, dataInicial){
       const sn=+$("#fSinal").value||0; if(sn>0) r.pagamentos=[{data:TODAY,valor:sn,forma:$("#fForma").value}];
       db.reservas.push(r);
     }
-    commit(novo?"Reserva cadastrada":"Alterações salvas");
+    if(!r.origem) r.origem="gestao";
+    commit(novo?"Reserva cadastrada":"Alterações salvas", r);
   });
 }
-function commit(msg){ save(); closeModal(); render(); toast(msg); }
+async function commit(msg, alterada){
+  if(PN.on){
+    try{
+      if(Array.isArray(alterada)) await PN.salvarVarias(alterada); else if(alterada) await PN.salvar(alterada);
+    }catch(e){
+      toast(e.code==="ocupado" ? "Não salvou: há brinquedo já alugado nesta data." : "Não foi possível salvar. Verifique a internet e tente de novo.");
+      await recarregar(); return;
+    }
+    closeModal(); await recarregar(); toast(msg); return;
+  }
+  save(); closeModal(); render(); toast(msg);
+}
+async function recarregar(){
+  if(!PN.on) return render();
+  try{ db={reservas:await PN.listar(), exemplo:false}; }
+  catch{ toast("Não foi possível carregar as reservas."); }
+  render();
+}
 
 function openPay(id){
   const r=db.reservas.find(x=>x.id===id); const pd=pendente(r);
@@ -540,7 +575,7 @@ function openPay(id){
     </form>`);
   $("#pClose").onclick=closeModal;
   $("#fPayF").addEventListener("submit",e=>{ e.preventDefault(); const v=+$("#pVal").value; if(!(v>0)) return;
-    r.pagamentos=[...(r.pagamentos||[]),{data:$("#pData").value,valor:v,forma:$("#pForma").value}]; commit("Pagamento de "+brl(v)+" registrado"); });
+    r.pagamentos=[...(r.pagamentos||[]),{data:$("#pData").value,valor:v,forma:$("#pForma").value}]; r.pagamentoInformado=false; commit("Pagamento de "+brl(v)+" registrado", r); });
 }
 
 // ===== CALENDÁRIO =====
@@ -668,7 +703,7 @@ $("#btnClearExamples").addEventListener("click",()=>{
 });
 $("#btnBackup").addEventListener("click",()=>{
   openModal(`<div><span class="label">Seus dados</span><h2>Backup</h2>
-    <p class="muted" style="margin-top:6px">As reservas ficam guardadas neste navegador. Baixe um backup com frequência e use "Restaurar" para levar os dados para outro computador ou celular.</p></div>
+    <p class="muted" style="margin-top:6px">${PN.on?"As reservas ficam no banco de dados. Baixe uma cópia de segurança de vez em quando.":"As reservas ficam guardadas neste navegador. Baixe um backup com frequência e use \"Restaurar\" para levar os dados para outro computador ou celular."}</p></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn" id="bJson">Baixar backup</button>
       <button class="btn soft" id="bCsv">Baixar planilha (CSV)</button>
@@ -685,12 +720,32 @@ $("#btnBackup").addEventListener("click",()=>{
     dl(`pula-nuvem-reservas-${TODAY}.csv`, "﻿"+[head.map(q).join(";"),...rows].join("\r\n"), "text/csv");
   };
   $("#bFile").onchange=async e=>{ const f=e.target.files[0]; if(!f) return;
-    try{ const d=JSON.parse(await f.text()); if(!Array.isArray(d.reservas)) throw 0; db=d; commit(`Backup restaurado: ${d.reservas.length} reservas`); }
+    try{ const d=JSON.parse(await f.text()); if(!Array.isArray(d.reservas)) throw 0; if(PN.on){ commit(`Backup enviado: ${d.reservas.length} reservas`, d.reservas.map(x=>({...x,origem:x.origem||"gestao"}))); } else { db=d; commit(`Backup restaurado: ${d.reservas.length} reservas`); } }
     catch{ toast("Arquivo inválido. Escolha um backup baixado por esta tela."); } };
 });
 
 try{ const t=localStorage.getItem(STORE_KEY+"_tab"); if(t) tab=t; }catch{}
-setTab(tab);
+async function iniciar(){
+  if(!PN.on){ setTab(tab); return; }
+  const ses=await PN.sessao();
+  $("#loginView").hidden=!!ses; $("#appView").hidden=!ses;
+  document.querySelector(".tabs").hidden=!ses; document.querySelector(".head-actions").hidden=!ses;
+  if(!ses){ $("#lEmail").focus(); return; }
+  $("#btnSync").hidden=false; $("#btnSair").hidden=false;
+  db={reservas:[],exemplo:false}; setTab(tab); await recarregar();
+}
+$("#loginForm").addEventListener("submit",async e=>{
+  e.preventDefault(); $("#lErro").hidden=true;
+  const b=e.submitter; b.disabled=true; b.textContent="Entrando…";
+  try{ await PN.entrar($("#lEmail").value.trim(), $("#lSenha").value); await iniciar(); }
+  catch{ $("#lErro").textContent="E-mail ou senha incorretos."; $("#lErro").hidden=false; }
+  b.disabled=false; b.textContent="Entrar";
+});
+$("#btnSair").addEventListener("click",async()=>{ await PN.sair(); location.reload(); });
+$("#btnSync").addEventListener("click",async()=>{ await recarregar(); toast("Reservas atualizadas"); });
+document.addEventListener("visibilitychange",()=>{ if(PN.on && !document.hidden && !$("#appView").hidden && overlay.hidden) recarregar(); });
+setInterval(()=>{ if(PN.on && !document.hidden && !$("#appView").hidden && overlay.hidden) recarregar(); }, 60000);
+iniciar();
 </script>
 </body>
 </html>

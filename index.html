@@ -279,12 +279,7 @@ footer{padding-block:32px;text-align:center;color:var(--ink-soft);font-size:.9re
   </div>
 </section>
 
-<section id="painel" hidden>
-  <div class="wrap">
-    <div class="sec-head"><div><span class="label">Só você vê esta parte</span><h2>Painel de reservas</h2></div><p>Confirme o pagamento ou cancele um pedido. Cancelar libera os brinquedos naquela data.</p></div>
-    <div class="admin"><table><thead><tr><th>Festa</th><th>Cliente</th><th>Brinquedos</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody id="adminRows"></tbody></table><p class="empty" id="adminEmpty">Nenhuma reserva ainda.</p></div>
-  </div>
-</section>
+
 </main>
 
 <footer><div class="wrap">Pula Nuvem Festas · Aluguel de brinquedos para festas infantis · <span id="modeNote"></span></div></footer>
@@ -293,6 +288,9 @@ footer{padding-block:32px;text-align:center;color:var(--ink-soft);font-size:.9re
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" id="modal"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="dados.js"></script>
 <script>
 // ===== CONFIGURAÇÃO DA EMPRESA (troque pelos seus dados) =====
 const CONFIG = {
@@ -442,6 +440,7 @@ $("#checkoutBtn").addEventListener("click",()=>{
       <div class="field"><label for="fNome">Seu nome</label><input id="fNome" required autocomplete="name" placeholder="Ex.: Ana Souza"></div>
       <div class="field"><label for="fTel">WhatsApp</label><input id="fTel" required inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000"></div>
       <div class="field"><label for="fEnd">Endereço da festa</label><input id="fEnd" required autocomplete="street-address" placeholder="Rua, número, bairro"></div>
+      <div class="field"><label for="fCidade">Cidade</label><input id="fCidade" required value="${combinar?"":"Cataguases"}" ${combinar?'placeholder="Ex.: Leopoldina"':"readonly"}></div>
       <div class="field"><label for="fHora">Horário de início</label><input id="fHora" type="time" required value="14:00"></div>
       <div class="field"><label for="fCrianca">Nome e idade do aniversariante (opcional)</label><input id="fCrianca" placeholder="Ex.: Pedro, 6 anos"></div>
       <div class="totals"><div class="big"><span>Total</span><span>${brl(total)}${combinar?" + frete":""}</span></div>
@@ -458,7 +457,7 @@ $("#checkoutBtn").addEventListener("click",()=>{
       id: "P"+Date.now().toString(36).toUpperCase(),
       data: state.date, horario: $("#fHora").value,
       nome: $("#fNome").value.trim(), telefone: $("#fTel").value.trim(), endereco: $("#fEnd").value.trim(),
-      aniversariante: $("#fCrianca").value.trim(),
+      aniversariante: $("#fCrianca").value.trim(), cidade: $("#fCidade").value.trim(),
       itens: {...state.cart}, frete: FRETES.find(f=>f.id===state.frete).nome, freteCombinar: totals().combinar,
       total: totals().total, status: "aguardando", criadoEm: new Date().toISOString()
     };
@@ -467,7 +466,10 @@ $("#checkoutBtn").addEventListener("click",()=>{
     const falta = Object.entries(pedido.itens).find(([id,q])=>TOYS.find(t=>t.id===id).qtd-(used[id]||0)<q);
     if(falta){ btn.disabled=false; btn.textContent="Ir para o pagamento"; toast("Alguém acabou de reservar um desses brinquedos. Revise o pedido."); closeModal(); render(); return; }
     try{ await salvarPedido(pedido); }
-    catch(err){ btn.disabled=false; btn.textContent="Ir para o pagamento"; toast("Não deu para salvar a reserva agora. Tente de novo em instantes."); return; }
+    catch(err){ btn.disabled=false; btn.textContent="Ir para o pagamento";
+      if(err.code==="ocupado"){ toast("Alguém acabou de reservar um desses brinquedos. Revise o pedido."); closeModal(); await carregarOcupacao(); render(); }
+      else toast("Não deu para salvar a reserva agora. Tente de novo em instantes.");
+      return; }
     state.cart={}; render(); showPayment(pedido);
   });
 });
@@ -504,7 +506,7 @@ function showPayment(p){
   $("#tCard").onclick=()=>{ $("#tCard").setAttribute("aria-pressed","true"); $("#tPix").setAttribute("aria-pressed","false"); $("#payCard").hidden=false; $("#payPix").hidden=true; };
   $("#depois").onclick=closeModal;
   $("#jaPaguei").onclick=async()=>{
-    try{ await atualizarStatus(p.id,"informado"); }catch{}
+    try{ if(PN.on) await PN.informarPagamento(p.id); }catch{}
     modal.innerHTML=`<div style="display:grid;gap:14px;text-align:center">
       <svg viewBox="0 0 80 80" width="90" style="justify-self:center"><circle cx="40" cy="40" r="36" fill="var(--menta)"/><path d="M24 41 l11 11 l22 -24" stroke="var(--ok)" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <h2 id="modalTitle" style="font-size:1.8rem">Reserva recebida!</h2>
@@ -520,58 +522,35 @@ function fakeQR(seed){
   return out+finder(0,0)+finder(14,0)+finder(0,14);
 }
 
-// ===== DADOS: banco compartilhado quando disponível, senão modo demonstração =====
+// ===== DADOS: Supabase quando configurado, senão modo demonstração =====
+async function carregarOcupacao(){
+  if(!PN.on) return;
+  const ate=new Date(); ate.setDate(ate.getDate()+400);
+  const rows=await PN.ocupacao(isoOf(new Date()), isoOf(ate));
+  state.ocupacao=rows.map(r=>({data:r.data, itens:Object.fromEntries((r.itens||[]).map(i=>[i,1])), status:"ok"}));
+}
 async function salvarPedido(p){
-  const ocup = {pedido:p.id, data:p.data, itens:p.itens, status:"aguardando"};
-  if(state.live && state.uid){
-    await state.db.doc("ocupacao/"+p.id).set(ocup);
-    const ref=state.db.doc("pedidos/"+state.uid);
-    const snap=await ref.get();
-    const atuais = snap.exists ? {...(snap.data().lista||{})} : {};
-    atuais[p.id]=p;
-    await ref.set({lista:atuais});
+  const itensArr=Object.keys(p.itens);
+  if(PN.on){
+    const vb=itensArr.reduce((s,id)=>s+TOYS.find(t=>t.id===id).preco*p.itens[id],0);
+    await PN.criarReservaSite({ id:p.id, data:p.data, horario:p.horario, cliente:p.nome, telefone:p.telefone, endereco:p.endereco,
+      cidade:p.cidade, aniversariante:p.aniversariante, itens:itensArr, valorBrinquedos:vb, frete:p.freteCombinar?0:p.total-vb,
+      freteCombinar:p.freteCombinar, total:p.total, obs:p.freteCombinar?"Frete a combinar":"" });
+    await carregarOcupacao().catch(()=>{});
   } else {
-    state.ocupacao.push(ocup); state.pedidos.push(p);
+    state.ocupacao.push({pedido:p.id, data:p.data, itens:p.itens, status:"ok"});
   }
 }
-async function atualizarStatus(id,status,dono){
-  if(state.live && state.uid){
-    await state.db.doc("ocupacao/"+id).update({status});
-    const path = dono ? "pedidos/"+dono : "pedidos/"+state.uid;
-    const ref=state.db.doc(path); const snap=await ref.get();
-    if(snap.exists){ const lista={...(snap.data().lista||{})}; if(lista[id]){ lista[id]={...lista[id],status}; await ref.set({lista}); } }
-  } else {
-    const o=state.ocupacao.find(x=>x.pedido===id); if(o) o.status=status;
-    const p=state.pedidos.find(x=>x.id===id); if(p) p.status=status;
-    render();
-  }
-}
-
-// ===== PAINEL DO DONO =====
-const STATUS_TXT={aguardando:"Aguardando pagamento",informado:"Cliente diz que pagou",pago:"Pago e confirmado",cancelada:"Cancelada"};
-function renderAdmin(){
-  if(location.hash!=="#painel"){ $("#painel").hidden=true; return; }
-  $("#painel").hidden=false;
-  const rows=[...state.pedidos].sort((a,b)=>a.data.localeCompare(b.data));
-  $("#adminEmpty").hidden=rows.length>0;
-  $("#adminRows").innerHTML=rows.map(p=>`<tr>
-    <td class="num">${p.data.split("-").reverse().join("/")}<br><span class="meta" style="color:var(--ink-soft)">${p.horario}</span></td>
-    <td>${esc(p.nome)}<br><span style="color:var(--ink-soft)">${esc(p.telefone)}</span><br><span style="color:var(--ink-soft)">${esc(p.endereco)}</span></td>
-    <td>${Object.entries(p.itens).map(([id,q])=>`${q}× ${TOYS.find(t=>t.id===id)?.nome||id}`).join("<br>")}</td>
-    <td class="num">${brl(p.total)}</td>
-    <td><span class="status ${p.status}">${STATUS_TXT[p.status]||p.status}</span></td>
-    <td style="white-space:nowrap">${p.status!=="pago"&&p.status!=="cancelada"?`<button class="btn small" data-st="pago" data-id="${p.id}" data-dono="${p._dono||""}">Confirmar</button> `:""}${p.status!=="cancelada"?`<button class="btn small soft" data-st="cancelada" data-id="${p.id}" data-dono="${p._dono||""}">Cancelar</button>`:""}</td></tr>`).join("");
-}
+function renderAdmin(){}
 function esc(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
-$("#adminRows").addEventListener("click",async e=>{
-  const b=e.target.closest("[data-st]"); if(!b) return;
-  b.disabled=true;
-  try{ await atualizarStatus(b.dataset.id,b.dataset.st,b.dataset.dono||null); toast(b.dataset.st==="pago"?"Reserva confirmada":"Reserva cancelada e brinquedos liberados"); }
-  catch{ toast("Não deu para atualizar agora. Tente de novo."); b.disabled=false; }
-});
 
 render();
-$("#modeNote").textContent="Modo demonstração: as reservas ainda não são salvas.";
+if(PN.on){
+  $("#modeNote").textContent="";
+  carregarOcupacao().then(render).catch(()=>toast("Não foi possível consultar a disponibilidade agora."));
+} else {
+  $("#modeNote").textContent="Modo demonstração: as reservas ainda não são salvas.";
+}
 
 
 </script>

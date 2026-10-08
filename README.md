@@ -22,7 +22,17 @@ A tela de gestão fica em `gestao.html` (ou no site com `#painel` no final do en
 - **Calendário**: dias livres, parcialmente alugados e lotados, com as festas de cada dia.
 - **Executivo**: faturamento, recebido, a receber, ticket médio e ocupação por mês e por ano, gráfico mensal, ranking de brinquedos e cidades.
 
-Enquanto o banco de dados não está conectado, as reservas ficam salvas no navegador de quem usa a gestão. Use o botão **Backup** para baixar uma cópia e restaurar em outro aparelho.
+## Banco de dados (Supabase)
+
+O site e a gestão usam o mesmo banco de dados. As reservas feitas pelos clientes aparecem na gestão, e o que a gestão cadastra ou cancela muda a disponibilidade no site.
+
+1. Crie um projeto grátis em supabase.com.
+2. Em **SQL Editor → New query**, cole o arquivo `supabase.sql`, troque `EMAIL_DA_DONA` pelo seu e-mail e clique em **Run**.
+3. Em **Authentication → Users → Add user**, crie o seu usuário com o mesmo e-mail e uma senha.
+4. Em **Authentication → Sign In / Providers**, desligue **Allow new users to sign up**.
+5. Em **Project Settings → API**, copie a **Project URL** e a chave **anon public** e cole em `config.js`.
+
+Enquanto `config.js` estiver vazio, o site funciona em modo demonstração e a gestão guarda os dados só no navegador.
 
 ## Publicar no GitHub Pages
 
