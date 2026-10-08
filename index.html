@@ -470,7 +470,7 @@ $("#checkoutBtn").addEventListener("click",()=>{
       if(err.code==="ocupado"){ toast("Alguém acabou de reservar um desses brinquedos. Revise o pedido."); closeModal(); await carregarOcupacao(); render(); }
       else toast("Não deu para salvar a reserva agora. Tente de novo em instantes.");
       return; }
-    avisarDona(pedido,"nova");
+    avisarDona(pedido);
     state.cart={}; render(); showPayment(pedido);
   });
 });
@@ -508,7 +508,6 @@ function showPayment(p){
   $("#depois").onclick=closeModal;
   $("#jaPaguei").onclick=async()=>{
     try{ if(PN.on) await PN.informarPagamento(p.id); }catch{}
-    avisarDona(p,"pagou");
     modal.innerHTML=`<div style="display:grid;gap:14px;text-align:center">
       <svg viewBox="0 0 80 80" width="90" style="justify-self:center"><circle cx="40" cy="40" r="36" fill="var(--menta)"/><path d="M24 41 l11 11 l22 -24" stroke="var(--ok)" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <h2 id="modalTitle" style="font-size:1.8rem">Reserva recebida!</h2>
@@ -545,20 +544,35 @@ async function salvarPedido(p){
 }
 function renderAdmin(){}
 
-// ===== AVISO POR E-MAIL PARA A DONA (Web3Forms) =====
-function avisarDona(p, tipo){
+// ===== AVISO POR E-MAIL PARA A DONA (Web3Forms) — um e-mail por reserva =====
+function avisarDona(p){
   const key=(window.PULA_CONFIG||{}).web3formsKey; if(!key) return;
-  const itens=Object.keys(p.itens).map(id=>TOYS.find(t=>t.id===id)?.nome||id).join(", ");
+  const itens=Object.keys(p.itens).map(id=>{ const t=TOYS.find(x=>x.id===id); return `${t?.nome||id} (${brl(t?.preco||0)})`; }).join(" + ");
   const dataBr=p.data.split("-").reverse().join("/");
+  const diaSemana=new Date(p.data+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long"});
   const sinal=p.total*CONFIG.sinalPercentual/100;
-  const titulo = tipo==="pagou" ? `Cliente informou pagamento: ${p.nome} (${dataBr})` : `Nova reserva: ${p.nome} – festa em ${dataBr}`;
+  const fone=p.telefone.replace(/\D/g,""); const foneIntl=fone.startsWith("55")?fone:"55"+fone;
+  const primeiroNome=p.nome.split(" ")[0];
+  const msgZap=`Olá, ${primeiroNome}! Aqui é da Pula Nuvem Festas 🎈 Recebemos sua reserva para ${dataBr} às ${p.horario} (${itens.replace(/ \(R\$[^)]*\)/g,"")}). O sinal é de ${brl(sinal)} via Pix. Assim que pagar, é só mandar o comprovante por aqui!`;
+  const enderecoCompleto=`${p.endereco}, ${p.cidade||"Cataguases"} - MG`;
   const corpo={
-    access_key:key, subject:titulo, from_name:"Site Pula Nuvem",
-    "Aviso": tipo==="pagou" ? "O cliente clicou em 'Já fiz o pagamento'. Confira no banco antes de confirmar." : "Nova solicitação de reserva feita pelo site.",
-    "Pedido":p.id, "Data da festa":`${dataBr} às ${p.horario}`, "Cliente":p.nome, "WhatsApp":p.telefone,
-    "Endereço":`${p.endereco} – ${p.cidade||""}`, "Aniversariante":p.aniversariante||"—", "Brinquedos":itens,
-    "Total": brl(p.total)+(p.freteCombinar?" + frete a combinar":""), "Sinal (50%)": brl(sinal),
-    "Gestão":"https://karinaboline.github.io/Pula-Nuvem/gestao.html"
+    access_key:key,
+    subject:`🎈 Nova reserva: ${p.nome} • ${dataBr} (${diaSemana})`,
+    from_name:"Pula Nuvem Festas",
+    "🎉 Nova reserva pelo site":`Pedido ${p.id}. Confira os dados abaixo e fale com o cliente para confirmar.`,
+    "📅 Data e horário da festa":`${diaSemana}, ${dataBr} às ${p.horario} (até 6 horas)`,
+    "👤 Cliente":p.nome,
+    "🎂 Aniversariante":p.aniversariante||"Não informado",
+    "📱 WhatsApp do cliente":p.telefone,
+    "💬 Chamar no WhatsApp (mensagem pronta)":`https://wa.me/${foneIntl}?text=${encodeURIComponent(msgZap)}`,
+    "📍 Endereço da festa":enderecoCompleto,
+    "🗺️ Ver endereço no mapa":`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(enderecoCompleto)}`,
+    "🎈 Brinquedos":itens,
+    "🚚 Entrega e montagem": p.freteCombinar ? "Fora de Cataguases: frete a combinar com o cliente" : brl(30)+" (Cataguases)",
+    "💰 Valor total": brl(p.total)+(p.freteCombinar?" + frete":""),
+    "💵 Sinal para garantir (50%)": brl(sinal),
+    "✅ Próximo passo":"Aguarde o comprovante do Pix e registre o pagamento na gestão.",
+    "🔗 Abrir a gestão":"https://karinaboline.github.io/Pula-Nuvem/gestao.html"
   };
   const fd=new FormData(); for(const [k,v] of Object.entries(corpo)) fd.append(k,v);
   fetch("https://api.web3forms.com/submit",{method:"POST",body:fd})
