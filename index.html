@@ -220,7 +220,7 @@ footer{padding-block:32px;text-align:center;color:var(--ink-soft);font-size:.9re
         <ul class="cart-list" id="cartList"></ul>
         <p class="empty" id="cartEmpty">Nenhum brinquedo ainda. Toque em "Adicionar" no catálogo.</p>
         <div class="field">
-          <label for="frete">Distância até a festa</label>
+          <label for="frete">Cidade da festa</label>
           <select id="frete"></select>
         </div>
         <div class="totals">
@@ -299,10 +299,8 @@ const CONFIG = {
   antecedenciaDias: 2
 };
 const FRETES = [
-  {id:"f1", nome:"Até 10 km", valor:40},
-  {id:"f2", nome:"De 10 a 20 km", valor:60},
-  {id:"f3", nome:"De 20 a 35 km", valor:90},
-  {id:"f0", nome:"Vou retirar no galpão", valor:0}
+  {id:"f1", nome:"Cataguases", valor:30},
+  {id:"f2", nome:"Outra cidade (frete a combinar)", valor:null}
 ];
 const TOYS = [
   {id:"pula", nome:"Pula-pula 2,5 m", desc:"Com rede de proteção, para até 4 crianças por vez.", idade:"3 a 12 anos", preco:180, qtd:3, cor:"--rosa", art:"pula"},
@@ -372,16 +370,18 @@ function renderGrid(){
 }
 function totals(){
   const sub = Object.entries(state.cart).reduce((s,[id,q])=>s+TOYS.find(t=>t.id===id).preco*q,0);
-  const fr = Object.keys(state.cart).length ? FRETES.find(f=>f.id===state.frete).valor : 0;
-  return {sub, fr, total:sub+fr};
+  const f = FRETES.find(x=>x.id===state.frete);
+  const combinar = f.valor===null;
+  const fr = Object.keys(state.cart).length && !combinar ? f.valor : 0;
+  return {sub, fr, total:sub+fr, combinar};
 }
 function renderCart(){
   const items = Object.entries(state.cart);
   $("#cartDate").textContent = state.date ? "Festa: "+fmtDate(state.date) : "Escolha a data da festa";
   $("#cartList").innerHTML = items.map(([id,q])=>{ const t=TOYS.find(x=>x.id===id); return `<li><span>${q}× ${t.nome}</span><span>${brl(t.preco*q)} <button data-rm="${id}" aria-label="Remover ${t.nome}">✕</button></span></li>`; }).join("");
   $("#cartEmpty").hidden = items.length>0;
-  const {sub,fr,total}=totals();
-  $("#subTotal").textContent=brl(sub); $("#freteTotal").textContent=brl(fr); $("#grandTotal").textContent=brl(total);
+  const {sub,fr,total,combinar}=totals();
+  $("#subTotal").textContent=brl(sub); $("#freteTotal").textContent=combinar?"A combinar":brl(fr); $("#grandTotal").textContent=brl(total)+(combinar?" + frete":"");
   $("#checkoutBtn").disabled = !items.length || !state.date;
   $("#cartCount").textContent = items.reduce((s,[,q])=>s+q,0);
 }
@@ -392,7 +392,7 @@ function renderHint(){
 }
 function render(){ renderGrid(); renderCart(); renderHint(); renderAdmin(); }
 
-$("#frete").innerHTML = FRETES.map(f=>`<option value="${f.id}">${f.nome}${f.valor?" · "+brl(f.valor):" · grátis"}</option>`).join("");
+$("#frete").innerHTML = FRETES.map(f=>`<option value="${f.id}">${f.nome}${f.valor!==null?" · "+brl(f.valor):""}</option>`).join("");
 $("#frete").addEventListener("change",e=>{state.frete=e.target.value; renderCart();});
 $("#festaData").addEventListener("change",e=>{
   const v=e.target.value;
@@ -420,7 +420,7 @@ overlay.addEventListener("click",e=>{ if(e.target===overlay) closeModal(); });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !overlay.hidden) closeModal(); });
 
 $("#checkoutBtn").addEventListener("click",()=>{
-  const {total}=totals();
+  const {total,combinar}=totals();
   modal.innerHTML = `
     <div><span class="label">Etapa 1 de 2</span><h2 id="modalTitle" style="font-size:1.8rem">Dados da festa</h2></div>
     <form id="formReserva" style="display:grid;gap:12px">
@@ -429,7 +429,8 @@ $("#checkoutBtn").addEventListener("click",()=>{
       <div class="field"><label for="fEnd">Endereço da festa</label><input id="fEnd" required autocomplete="street-address" placeholder="Rua, número, bairro"></div>
       <div class="field"><label for="fHora">Horário de início</label><input id="fHora" type="time" required value="14:00"></div>
       <div class="field"><label for="fCrianca">Nome e idade do aniversariante (opcional)</label><input id="fCrianca" placeholder="Ex.: Pedro, 6 anos"></div>
-      <div class="totals"><div class="big"><span>Total</span><span>${brl(total)}</span></div>
+      <div class="totals"><div class="big"><span>Total</span><span>${brl(total)}${combinar?" + frete":""}</span></div>
+      ${combinar?'<p class="note">Como a festa é fora de Cataguases, vamos calcular o frete e combinar com você pelo WhatsApp.</p>':""}
       <div><span>Sinal para reservar (${CONFIG.sinalPercentual}%)</span><strong>${brl(total*CONFIG.sinalPercentual/100)}</strong></div></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" type="submit">Ir para o pagamento</button><button class="btn soft" type="button" id="cancelM">Voltar</button></div>
     </form>`;
@@ -443,7 +444,7 @@ $("#checkoutBtn").addEventListener("click",()=>{
       data: state.date, horario: $("#fHora").value,
       nome: $("#fNome").value.trim(), telefone: $("#fTel").value.trim(), endereco: $("#fEnd").value.trim(),
       aniversariante: $("#fCrianca").value.trim(),
-      itens: {...state.cart}, frete: FRETES.find(f=>f.id===state.frete).nome,
+      itens: {...state.cart}, frete: FRETES.find(f=>f.id===state.frete).nome, freteCombinar: totals().combinar,
       total: totals().total, status: "aguardando", criadoEm: new Date().toISOString()
     };
     // checa disponibilidade de novo antes de gravar
