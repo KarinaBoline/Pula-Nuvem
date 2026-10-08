@@ -2,6 +2,6 @@
 // Cole aqui a "Project URL" e a chave "anon public" do seu projeto.
 // Enquanto estiverem vazias, o site funciona em modo demonstração.
 window.PULA_CONFIG = {
-  supabaseUrl: "",
+  supabaseUrl: "https://brpypvvpevttvdiqvdxw.supabase.co",
   supabaseAnonKey: ""
 };
