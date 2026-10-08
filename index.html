@@ -102,6 +102,10 @@ section{padding-block:56px}
 .badge.no{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
 .badge.wait{background:var(--line);color:var(--ink-soft)}
 .toy.out{opacity:.6}
+.toy .art{position:relative}
+.ribbon{position:absolute;top:14px;left:-6px;background:var(--accent);color:var(--accent-ink);font-family:var(--display);font-weight:800;font-size:1rem;padding:.25em 1em .2em 1.1em;border-radius:0 999px 999px 0;box-shadow:var(--shadow)}
+.toy.soon .art svg{opacity:.55;filter:saturate(.7)}
+.badge.soon{background:var(--lavanda);color:var(--ink)}
 
 /* Carrinho */
 .cart{position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px);background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;display:grid;gap:14px;border-top:8px solid var(--rosa)}
@@ -303,14 +307,14 @@ const FRETES = [
   {id:"f2", nome:"Outra cidade (frete a combinar)", valor:null}
 ];
 const TOYS = [
-  {id:"pula", nome:"Pula-pula 2,5 m", desc:"Com rede de proteção, para até 4 crianças por vez.", idade:"3 a 12 anos", preco:160, qtd:3, cor:"--rosa", art:"pula"},
+  {id:"pula", emBreve:true, nome:"Pula-pula 2,5 m", desc:"Com rede de proteção, para até 4 crianças por vez.", idade:"3 a 12 anos", preco:160, qtd:1, cor:"--rosa", art:"pula"},
   {id:"cama", nome:"Cama elástica 3,6 m", desc:"A maior da casa, para os pequenos que pulam alto.", idade:"5 a 14 anos", preco:200, qtd:1, cor:"--menta", art:"pula2"},
-  {id:"castelo", nome:"Castelo inflável", desc:"Torres coloridas e área de pulo de 4 x 4 m.", idade:"2 a 10 anos", preco:260, qtd:2, cor:"--lavanda", art:"castelo"},
-  {id:"bolinhas", nome:"Piscina de bolinhas", desc:"1,5 x 1,5 m com 2.000 bolinhas higienizadas.", idade:"1 a 5 anos", preco:160, qtd:2, cor:"--manteiga", art:"bolinhas"},
-  {id:"toboga", nome:"Tobogã inflável", desc:"Escalada e descida de 5 m de comprimento.", idade:"4 a 12 anos", preco:350, qtd:1, cor:"--ceu", art:"toboga"},
-  {id:"gira", nome:"Gira-gira", desc:"Carrossel manual com 6 assentos.", idade:"2 a 8 anos", preco:110, qtd:2, cor:"--pessego", art:"gira"},
-  {id:"algodao", nome:"Máquina de algodão-doce", desc:"Inclui 50 palitos e açúcar colorido.", idade:"Para a festa toda", preco:120, qtd:2, cor:"--rosa", art:"algodao"},
-  {id:"mesas", nome:"Kit mesinhas infantis", desc:"4 mesinhas e 16 cadeirinhas coloridas.", idade:"Para a festa toda", preco:100, qtd:4, cor:"--menta", art:"mesas"}
+  {id:"castelo", nome:"Castelo inflável", desc:"Torres coloridas e área de pulo de 4 x 4 m.", idade:"2 a 10 anos", preco:260, qtd:1, cor:"--lavanda", art:"castelo"},
+  {id:"bolinhas", nome:"Piscina de bolinhas", desc:"1,5 x 1,5 m com 2.000 bolinhas higienizadas.", idade:"1 a 5 anos", preco:160, qtd:1, cor:"--manteiga", art:"bolinhas"},
+  {id:"toboga", emBreve:true, nome:"Tobogã inflável", desc:"Escalada e descida de 5 m de comprimento.", idade:"4 a 12 anos", preco:350, qtd:1, cor:"--ceu", art:"toboga"},
+  {id:"gira", emBreve:true, nome:"Gira-gira", desc:"Carrossel manual com 6 assentos.", idade:"2 a 8 anos", preco:110, qtd:1, cor:"--pessego", art:"gira"},
+  {id:"algodao", emBreve:true, nome:"Máquina de algodão-doce", desc:"Inclui 50 palitos e açúcar colorido.", idade:"Para a festa toda", preco:120, qtd:1, cor:"--rosa", art:"algodao"},
+  {id:"mesas", emBreve:true, nome:"Kit mesinhas infantis", desc:"4 mesinhas e 16 cadeirinhas coloridas.", idade:"Para a festa toda", preco:100, qtd:1, cor:"--menta", art:"mesas"}
 ];
 
 const ART = {
@@ -350,11 +354,22 @@ function livre(toy){ if(!state.date) return null; const used=reservedOn(state.da
 
 function renderGrid(){
   const used = state.date ? reservedOn(state.date) : {};
-  $("#grid").innerHTML = TOYS.map(t=>{
+  const lista=[...TOYS].sort((a,b)=>(a.emBreve?1:0)-(b.emBreve?1:0));
+  $("#grid").innerHTML = lista.map(t=>{
+    if(t.emBreve) return `<article class="toy soon">
+      <div class="art" style="background:var(${t.cor})"><span class="ribbon">Em breve</span>${ART[t.art]}</div>
+      <div class="info">
+        <span class="badge soon">Chegando em breve</span>
+        <h3>${t.nome}</h3>
+        <p>${t.desc}</p>
+        <p class="meta">Idade: ${t.idade}</p>
+        <div class="row"><span class="price">${brl(t.preco)} <small>/festa</small></span>
+        <button class="btn small soft" disabled>Em breve</button></div>
+      </div></article>`;
     const disp = state.date ? t.qtd-(used[t.id]||0) : null;
     const noCart = state.cart[t.id]||0;
     let badge = '<span class="badge wait">Escolha a data</span>';
-    if(disp!==null) badge = disp>0 ? `<span class="badge ok">${disp===1?"1 disponível":disp+" disponíveis"}</span>` : '<span class="badge no">Esgotado nesta data</span>';
+    if(disp!==null) badge = disp>0 ? `<span class="badge ok">${disp===1?"Disponível":disp+" disponíveis"}</span>` : '<span class="badge no">Reservado nesta data</span>';
     const canAdd = disp!==null && disp-noCart>0;
     return `<article class="toy ${disp===0?"out":""}">
       <div class="art" style="background:var(${t.cor})">${ART[t.art]}</div>
@@ -364,7 +379,7 @@ function renderGrid(){
         <p>${t.desc}</p>
         <p class="meta">Idade: ${t.idade}</p>
         <div class="row"><span class="price">${brl(t.preco)} <small>/festa</small></span>
-        <button class="btn small" data-add="${t.id}" ${canAdd?"":"disabled"}>${noCart?"Mais um":"Adicionar"}</button></div>
+        <button class="btn small" data-add="${t.id}" ${canAdd?"":"disabled"}>${noCart?"No pedido":"Adicionar"}</button></div>
       </div></article>`;
   }).join("");
 }
@@ -387,8 +402,8 @@ function renderCart(){
 }
 function renderHint(){
   if(!state.date){ $("#dateHint").textContent="Escolha a data para ver o que está livre."; return; }
-  const used=reservedOn(state.date); const livres=TOYS.filter(t=>t.qtd-(used[t.id]||0)>0).length;
-  $("#dateHint").textContent = `${fmtDate(state.date)}: ${livres} de ${TOYS.length} brinquedos livres.`;
+  const used=reservedOn(state.date); const ativos=TOYS.filter(t=>!t.emBreve); const livres=ativos.filter(t=>t.qtd-(used[t.id]||0)>0).length;
+  $("#dateHint").textContent = `${fmtDate(state.date)}: ${livres} de ${ativos.length} brinquedos livres.`;
 }
 function render(){ renderGrid(); renderCart(); renderHint(); renderAdmin(); }
 
