@@ -552,27 +552,22 @@ function avisarDona(p){
   const diaSemana=new Date(p.data+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long"});
   const sinal=p.total*CONFIG.sinalPercentual/100;
   const fone=p.telefone.replace(/\D/g,""); const foneIntl=fone.startsWith("55")?fone:"55"+fone;
-  const primeiroNome=p.nome.split(" ")[0];
-  const msgZap=`Olá, ${primeiroNome}! Aqui é da Pula Nuvem Festas 🎈 Recebemos sua reserva para ${dataBr} às ${p.horario} (${itens.replace(/ \(R\$[^)]*\)/g,"")}). O sinal é de ${brl(sinal)} via Pix. Assim que pagar, é só mandar o comprovante por aqui!`;
   const enderecoCompleto=`${p.endereco}, ${p.cidade||"Cataguases"} - MG`;
   const corpo={
     access_key:key,
-    subject:`🎈 Nova reserva: ${p.nome} • ${dataBr} (${diaSemana})`,
+    subject:`Nova reserva: ${p.nome} - festa em ${dataBr}`,
     from_name:"Pula Nuvem Festas",
-    "🎉 Nova reserva pelo site":`Pedido ${p.id}. Confira os dados abaixo e fale com o cliente para confirmar.`,
-    "📅 Data e horário da festa":`${diaSemana}, ${dataBr} às ${p.horario} (até 6 horas)`,
-    "👤 Cliente":p.nome,
-    "🎂 Aniversariante":p.aniversariante||"Não informado",
-    "📱 WhatsApp do cliente":p.telefone,
-    "💬 Chamar no WhatsApp (mensagem pronta)":`https://wa.me/${foneIntl}?text=${encodeURIComponent(msgZap)}`,
-    "📍 Endereço da festa":enderecoCompleto,
-    "🗺️ Ver endereço no mapa":`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(enderecoCompleto)}`,
-    "🎈 Brinquedos":itens,
-    "🚚 Entrega e montagem": p.freteCombinar ? "Fora de Cataguases: frete a combinar com o cliente" : brl(30)+" (Cataguases)",
-    "💰 Valor total": brl(p.total)+(p.freteCombinar?" + frete":""),
-    "💵 Sinal para garantir (50%)": brl(sinal),
-    "✅ Próximo passo":"Aguarde o comprovante do Pix e registre o pagamento na gestão.",
-    "🔗 Abrir a gestão":"https://karinaboline.github.io/Pula-Nuvem/gestao.html"
+    "Pedido":p.id,
+    "Data da festa":`${diaSemana}, ${dataBr} às ${p.horario} (até 6 horas)`,
+    "Cliente":p.nome,
+    "Aniversariante":p.aniversariante||"Não informado",
+    "WhatsApp do cliente":`${p.telefone}  -  conversar: https://wa.me/${foneIntl}`,
+    "Endereço da festa":enderecoCompleto,
+    "Brinquedos":itens,
+    "Entrega e montagem": p.freteCombinar ? "Fora de Cataguases: frete a combinar" : brl(30)+" (Cataguases)",
+    "Valor total": brl(p.total)+(p.freteCombinar?" + frete":""),
+    "Sinal (50%)": brl(sinal),
+    "Próximo passo":"Aguardar o comprovante do Pix e registrar o pagamento na gestão: https://karinaboline.github.io/Pula-Nuvem/gestao.html"
   };
   const fd=new FormData(); for(const [k,v] of Object.entries(corpo)) fd.append(k,v);
   fetch("https://api.web3forms.com/submit",{method:"POST",body:fd})
