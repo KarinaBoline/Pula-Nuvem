@@ -576,6 +576,6 @@ $("#modeNote").textContent="Modo demonstração: as reservas ainda não são sal
 
 </script>
 
-<script>window.addEventListener("hashchange",()=>render());</script>
+<script>function irGestao(){ if(location.hash==="#painel") location.replace("gestao.html"); } irGestao(); window.addEventListener("hashchange",irGestao);</script>
 </body>
 </html>

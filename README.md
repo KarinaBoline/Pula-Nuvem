@@ -14,7 +14,15 @@ No começo do script em `index.html`, no bloco `CONFIG`:
 - `pixNome`: nome da empresa como aparece no banco
 - `linkCartao`: link de pagamento do Mercado Pago, PagSeguro ou InfinitePay
 
-O painel de reservas aparece ao abrir o site com `#painel` no final do endereço.
+## Gestão
+
+A tela de gestão fica em `gestao.html` (ou no site com `#painel` no final do endereço). Ela tem:
+
+- **Operação**: lista de reservas com cliente, telefone, endereço, brinquedos, total, valor pago e pendente; registro de pagamentos, edição, cancelamento.
+- **Calendário**: dias livres, parcialmente alugados e lotados, com as festas de cada dia.
+- **Executivo**: faturamento, recebido, a receber, ticket médio e ocupação por mês e por ano, gráfico mensal, ranking de brinquedos e cidades.
+
+Enquanto o banco de dados não está conectado, as reservas ficam salvas no navegador de quem usa a gestão. Use o botão **Backup** para baixar uma cópia e restaurar em outro aparelho.
 
 ## Publicar no GitHub Pages
 
